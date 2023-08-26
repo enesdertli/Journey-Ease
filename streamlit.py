@@ -1,9 +1,10 @@
 import streamlit as st
 from streamlit_folium import st_folium
-import folium
+import requests
 
 
 def main():
+
     st.title("Google Maps Rota Oluşturucu")
     st.markdown("<h3 style='text-align: left;'>Harita</h3>", unsafe_allow_html=True)
     
@@ -37,31 +38,75 @@ def main():
     
 
     #* Ara Noktalar
-    way_point = st.text_input("Ara Noktalar", 
+    way_points = st.text_input("Ara Noktalar", 
                               help = "Ara noktaları tek tek girin",
-                              placeholder="Ara noktaları girin. Birden çok eklemek için enter tuşuna basın",
+                              placeholder="Ara noktaları girin. Birden çok eklemek için aralarına virgül koyarak yazın. Örn: Ankara, İstanbul, İzmir",
                               )
+    if st.button("Yol Tarifi Bul"):
+        get_directions(api_key, start_point, end_point, way_points)
 
-    #When the button is clicked or the enter key is pressed while the text input is in focus, ara_nokta is added to the list and the text input is cleared. Then the list is displayed.
-    # if st.button("Ara Nokta Ekle"):
-    #     if way_point:
-    #         way_points.append(way_point)
-    #         st.session_state.enter_pressed = False  # Enter tuşuna tepkiyi sıfırla
-    #         way_point = ""
-    #         print(way_points)
-
-    # # Ara Noktaları göster
-    # st.header("Ara Noktalar")
-    # for i, nokta in enumerate(way_points, 1):
-    #     st.write(f"{i}. {nokta}")
-        
-
-
-        
-
-
-
+def get_coordinates(api_key, location_name):
+    base_url = "https://maps.googleapis.com/maps/api/geocode/json"
     
+    params = {
+        "address": location_name,
+        "key": api_key
+    }
+    
+    response = requests.get(base_url, params=params)
+    data = response.json()
+    
+    if data["status"] == "OK":
+        results = data["results"]
+        if results:
+            location = results[0]["geometry"]["location"]
+            return location["lat"], location["lng"]
+    else:
+        print("Error:", data["status"])
+    
+    return None
+
+
+def get_directions(api_key, origin, destination, waypoints):
+    origin_coordinates = get_coordinates(api_key, origin)
+    destination_coordinates = get_coordinates(api_key, destination)
+    
+    if origin_coordinates and destination_coordinates:
+        base_url = "https://maps.googleapis.com/maps/api/directions/json"
+        
+        params = {
+            "origin": f"{origin_coordinates[0]},{origin_coordinates[1]}",
+            "destination": f"{destination_coordinates[0]},{destination_coordinates[1]}",
+            "key": api_key
+        }
+        
+        response = requests.get(base_url, params=params)
+        data = response.json()
+    
+      
+    
+        if data["status"] == "OK":
+            routes = data["routes"]
+            for route in routes:
+                print("Route Summary:", route["summary"])
+                print("Total Distance:", route["legs"][0]["distance"]["text"])
+                print("Total Duration:", route["legs"][0]["duration"]["text"])
+                print("Steps:")
+                for step in route["legs"][0]["steps"]:
+                    print(step["html_instructions"])
+                    print("Distance:", step["distance"]["text"])
+                    print("Duration:", step["duration"]["text"])
+                    print("="*50)
+        else:
+            print("Error:", data["status"])
+
+    else:
+        print("Could not retrieve coordinates for origin or destination.")
+
+
+
+# API anahtarını buraya ekleyin
+api_key = "AIzaSyAvUEMGznowOozaDggLP1ySoYkq2901jng"
 
 if __name__ == "__main__":
     main()
