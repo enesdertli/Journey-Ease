@@ -62,7 +62,7 @@ def main():
         
 if __name__ == "__main__":
     main()
-    map = folium.Map(location=start_coordinates, zoom_start=6)
+    map = folium.Map(location=start_coordinates, zoom_start=12)
     st_folium(map, width=800, height=600)
 
 
