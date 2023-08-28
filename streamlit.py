@@ -105,7 +105,6 @@ def get_directions(api_key, origin, destination, waypoints):
 
 
 
-# API anahtarını buraya ekleyin
 api_key = "AIzaSyAvUEMGznowOozaDggLP1ySoYkq2901jng"
 
 if __name__ == "__main__":
