@@ -4,6 +4,7 @@ import streamlit as st
 import folium
 import polyline
 import pandas as pd
+import time
 
 # Read API key
 api_key = open("key.txt", "r").read()
@@ -77,12 +78,17 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
         # Add color to map
         folium.TileLayer('Stamen Watercolor').add_to(m)
         #folium.TileLayer('OpenStreetMap').add_to(m)
-        # Clear the placeholder
-        placeholder_map.empty()
+
+        # Remove success text
+        succes_text.empty()
+        # Add the processed map to the placeholder
         with placeholder_map.container():
             # Display map
             st.components.v1.html(m._repr_html_(), width=750, height=450)
-
+        with container_mapandinfo:
+            with containerInfo:
+                st.caption(distanceInfo)
+                st.caption(durationInfo)
 
 # Display title
 st.title("Yol Bul")
@@ -102,16 +108,25 @@ with cols[1]:
 # Display button
 button_yol_tarifi = st.button("Yol Tarifi Al")
 
-# Display clean map
+# Created container for map and info to show them side by side
+container_mapandinfo = st.container()
+
+# Create placeholder for map for changing it after button is clicked and process is done
 placeholder_map = st.empty()
-with placeholder_map.container():
-    m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
-    folium.TileLayer('Stamen Watercolor').add_to(m)
-    st.components.v1.html(m._repr_html_(), width=750, height=450)
+
+with container_mapandinfo:
+    # Display clean map
+    with placeholder_map.container():
+        m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
+        folium.TileLayer('Stamen Watercolor').add_to(m)
+        st.components.v1.html(m._repr_html_(), width=750, height=450)
     
 # If button is clicked then process
 if button_yol_tarifi:
-    # Replace , with | for waypoints
+    # Clear the placeholder
+    placeholder_map.empty()
+
+    # Replace , and - with | for waypoints
     waypoints = waypoints.replace(",", "|").replace("-", "|")
     # Optimize waypoints
     waypoints = f"optimize:true|{waypoints}"
@@ -122,7 +137,6 @@ if button_yol_tarifi:
         navigation_mode = "transit"
     else:
         navigation_mode = "walking"
-
 
     # Make request
     params = {
@@ -141,22 +155,22 @@ if button_yol_tarifi:
     # Check status
     if data["status"] != "OK":
         st.write("Error:", data["status"])
-    else:
+    else:   
+        # Display success message
+        with container_mapandinfo:
+            succes_text = st.success("Yol tarifi alınıyor!",icon="🚗")
+            
         # Display on the map
         path_data = data["routes"][0]["overview_polyline"]["points"]
         decoded_path = polyline.decode(path_data)
         containerInfo = st.container()
 
-        with containerInfo:
-            st.write("Toplam Mesafe:", data["routes"][0]["legs"][0]["distance"]["text"])
-            st.write("Tahmini Varış Süresi:", data["routes"][0]["legs"][0]["duration"]["text"].replace("hours", "saat").replace("mins", "dakika").replace("days","gün"))
+        # Get distance and duration
+        distance = data["routes"][0]["legs"][0]["distance"]["text"]
+        duration = data["routes"][0]["legs"][0]["duration"]["text"].replace("hours", "saat").replace("mins", "dakika").replace("days","gün")
 
+        # Because of we cant caption more than one variable, we need to combine them
+        distanceInfo = ("Toplam mesafe: " + distance)
+        durationInfo = ("Tahmini varış süresi: " + duration)
         # Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
-
-
-
-
-
-
-
