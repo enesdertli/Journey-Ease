@@ -40,7 +40,7 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
 
     if origin_coordinates and destination_coordinates:
         # Create map
-        m = folium.Map(location=[(origin_coordinates[0] + destination_coordinates[0]) / 2, (origin_coordinates[1] + destination_coordinates[1]) / 2], zoom_start=8)
+        m = folium.Map(location=[(origin_coordinates[0] + destination_coordinates[0]) / 2, (origin_coordinates[1] + destination_coordinates[1]) / 2], zoom_start=6)
 
         # Güzergahı haritaya ekleyin
         folium.PolyLine(
@@ -77,30 +77,42 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
         # Add color to map
         folium.TileLayer('Stamen Watercolor').add_to(m)
         #folium.TileLayer('OpenStreetMap').add_to(m)
-        # Display map
-        st.components.v1.html(m._repr_html_(), width=800, height=600)
+        # Clear the placeholder
+        placeholder_map.empty()
+        with placeholder_map.container():
+            # Display map
+            st.components.v1.html(m._repr_html_(), width=750, height=450)
 
 
 # Display title
 st.title("Yol Bul")
 
+# Display inputs
 cols = st.columns([2,1])
 with cols[0]:
-    # Display inputs
+    # Display inputs for origin, destination and waypoints
     origin = st.text_input("Başlangıç Noktası").title()
     destination = st.text_input("Varış Noktası").title()
-    waypoints = st.text_input("Ara Noktalar", help="Ara noktaları virgül ile ayırın").title()
+    waypoints = st.text_input("Ara Noktalar", help="Ara noktaları virgül(,) veya tire(-) ile ayırın").title()
 
 with cols[1]:
-    # Type of travel
+    # Display input for navigation mode
     navigation_mode = st.radio("Navigasyon Modu Seçin:", ("Araba", "Toplu Taşıma", "Yaya"))
     
-
 # Display button
-if st.button("Yol Tarifi Al"):
+button_yol_tarifi = st.button("Yol Tarifi Al")
 
+# Display clean map
+placeholder_map = st.empty()
+with placeholder_map.container():
+    m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
+    folium.TileLayer('Stamen Watercolor').add_to(m)
+    st.components.v1.html(m._repr_html_(), width=750, height=450)
+    
+# If button is clicked then process
+if button_yol_tarifi:
     # Replace , with | for waypoints
-    waypoints = waypoints.replace(",", "|")
+    waypoints = waypoints.replace(",", "|").replace("-", "|")
     # Optimize waypoints
     waypoints = f"optimize:true|{waypoints}"
     # Get travel mode
@@ -110,7 +122,6 @@ if st.button("Yol Tarifi Al"):
         navigation_mode = "transit"
     else:
         navigation_mode = "walking"
-
 
 
     # Make request
@@ -134,8 +145,11 @@ if st.button("Yol Tarifi Al"):
         # Display on the map
         path_data = data["routes"][0]["overview_polyline"]["points"]
         decoded_path = polyline.decode(path_data)
-        st.write("Toplam Mesafe:", data["routes"][0]["legs"][0]["distance"]["text"])
-    
+        containerInfo = st.container()
+
+        with containerInfo:
+            st.write("Toplam Mesafe:", data["routes"][0]["legs"][0]["distance"]["text"])
+            st.write("Tahmini Varış Süresi:", data["routes"][0]["legs"][0]["duration"]["text"].replace("hours", "saat").replace("mins", "dakika").replace("days","gün"))
 
         # Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
