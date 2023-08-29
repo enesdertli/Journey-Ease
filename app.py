@@ -91,7 +91,7 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                 st.caption(durationInfo)
 
 # Display title
-st.title("Yol Bul")
+st.set_page_config(page_title="Yol Bul", page_icon= "random", layout="centered")
 
 # Display inputs
 cols = st.columns([2,1])
@@ -154,7 +154,9 @@ if button_yol_tarifi:
 
     # Check status
     if data["status"] != "OK":
-        st.write("Error:", data["status"])
+        # Display error message
+        error_text = ("Hata: " + data["status"] + ", Yol tarifi alınamadı!")
+        st.error(error_text, icon="🚨")
     else:   
         # Display success message
         with container_mapandinfo:
