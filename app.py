@@ -99,10 +99,56 @@ def get_place_id(api_key_place, place):
     data_place = response_place.json()
     if 'candidates' in data_place and data_place['candidates']:
         place_id = data_place['candidates'][0]['place_id']
-        print(f'{place}: {place_id}')
+        return place_id
     else:
-        print('Yer bulunamadı veya hata oluştu.')
-    return place_id
+        st.error('Yer bulunamadı veya hata oluştu.')
+    #return place_id
+
+def showTheDatils(api_key_place, place_id):
+    url_place_details = f'https://maps.googleapis.com/maps/api/place/details/json?placeid={place_id}&key={api_key_place}'
+    response_place_details = requests.get(url_place_details)
+    data_place_details = response_place_details.json()  
+    # Check status
+    if 'result' in data_place_details:
+        place_details = data_place_details['result']
+        name = place_details.get('name', 'Bilgi yok')
+        address = place_details.get('formatted_address', 'Bilgi yok')
+        phone = place_details.get('formatted_phone_number', 'Bilgi yok')
+        website = place_details.get('website', 'Bilgi yok')
+        photos = place_details.get('photos', [])
+        tab_count = (len(photos) +2) // 3
+        tab_titles = [f'Sayfa {i+1}' for i in range(tab_count)]
+        
+        
+        # Show the details
+        with tab1Name:
+            st.subheader(name)
+        with tab2Address:
+            st.subheader(address)
+        with tab3Phone:
+            st.subheader(phone)
+        with tab4Website:
+            st.subheader(website)
+        # Show the photos
+        with tab5Photos:
+            tabsOfPhotos = st.tabs(tab_titles)
+            for i in range(tab_count):
+                with tabsOfPhotos[i]:
+                    start_index = i * 3
+                    end_index = min(start_index + 3, len(photos))
+                    
+                    for j in range(start_index, end_index):
+                        photo_reference = photos[j].get('photo_reference', '')
+                        photo_url = f'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key_place}'
+                        st.image(photo_url, caption="Şehir Fotoğrafı", width = 300, use_column_width=False)
+            
+            
+                
+
+
+        
+    else:
+        st.error('Yer detayları bulunamadı veya hata oluştu.')
 
 # Display title
 st.set_page_config(page_title="Yol Bul", layout="centered")
@@ -191,8 +237,25 @@ if button_yol_tarifi:
         # Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
 
-# ----------- ekle
+# Divider 
+st.divider()
 # Get the place name from the user and create and button right next to it
+col1, col2 = st.columns([2,1])
+with col1:
+    placeDetails = st.text_input("Yer Adı").title()
+button_yer_bul = col2.button("Detayları Göster")
+
+# If button is clicked then process finding details of the place
+# First find the ID of the place
+if button_yer_bul:
+    IDofPlace = get_place_id(api_key_place, placeDetails)
+    # If ID is found then get details of the place
+    if IDofPlace:
+        tab1Name, tab2Address, tab3Phone, tab4Website, tab5Photos = st.tabs(["Yer Adı", "Adres", "Telefon", "Web Sitesi", "Fotoğraflar"])
+        showTheDatils(api_key_place, IDofPlace)
+        
+        
+
 
 
 
