@@ -8,6 +8,8 @@ import time
 
 # Read API key
 api_key = open("key.txt", "r").read()
+api_key_place = open("placeapi.txt", "r").read()
+
 # API base url
 url = "https://maps.googleapis.com/maps/api/directions/json"
 
@@ -90,8 +92,20 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                 st.caption(distanceInfo)
                 st.caption(durationInfo)
 
+
+def get_place_id(api_key_place, place):
+    url_place = f'https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={place}&inputtype=textquery&fields=place_id&key={api_key_place}'
+    response_place = requests.get(url_place)
+    data_place = response_place.json()
+    if 'candidates' in data_place and data_place['candidates']:
+        place_id = data_place['candidates'][0]['place_id']
+        print(f'{place}: {place_id}')
+    else:
+        print('Yer bulunamadı veya hata oluştu.')
+    return place_id
+
 # Display title
-st.set_page_config(page_title="Yol Bul", page_icon= "random", layout="centered")
+st.set_page_config(page_title="Yol Bul", layout="centered")
 
 # Display inputs
 cols = st.columns([2,1])
@@ -123,9 +137,9 @@ with container_mapandinfo:
     
 # If button is clicked then process
 if button_yol_tarifi:
+
     # Clear the placeholder
     placeholder_map.empty()
-
     # Replace , and - with | for waypoints
     waypoints = waypoints.replace(",", "|").replace("-", "|")
     # Optimize waypoints
@@ -176,3 +190,9 @@ if button_yol_tarifi:
         durationInfo = ("Tahmini varış süresi: " + duration)
         # Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
+
+# ----------- ekle
+# Get the place name from the user and create and button right next to it
+
+
+
