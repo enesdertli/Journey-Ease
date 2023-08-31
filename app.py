@@ -35,6 +35,17 @@ def get_coordinates(api_key, location_name):
         print("Error:", data["status"])
     return None
 
+def get_place_id(api_key_place, place):
+
+    url_place = f'https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={place}&inputtype=textquery&fields=place_id&key={api_key_place}'
+    response_place = requests.get(url_place)
+    data_place = response_place.json()
+    if 'candidates' in data_place and data_place['candidates']:
+        place_id = data_place['candidates'][0]['place_id']
+        return place_id
+    else:
+        st.error('Yer bulunamadı veya hata oluştu.')
+    #return place_id
 
 def display_coordinates_on_map(api_key, origin, destination, waypoints):
     # Get coordinates
@@ -92,18 +103,6 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                 st.caption(distanceInfo)
                 st.caption(durationInfo)
 
-
-def get_place_id(api_key_place, place):
-    url_place = f'https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={place}&inputtype=textquery&fields=place_id&key={api_key_place}'
-    response_place = requests.get(url_place)
-    data_place = response_place.json()
-    if 'candidates' in data_place and data_place['candidates']:
-        place_id = data_place['candidates'][0]['place_id']
-        return place_id
-    else:
-        st.error('Yer bulunamadı veya hata oluştu.')
-    #return place_id
-
 def showTheDatils(api_key_place, place_id):
     url_place_details = f'https://maps.googleapis.com/maps/api/place/details/json?placeid={place_id}&key={api_key_place}'
     response_place_details = requests.get(url_place_details)
@@ -136,11 +135,13 @@ def showTheDatils(api_key_place, place_id):
                 with tabsOfPhotos[i]:
                     start_index = i * 3
                     end_index = min(start_index + 3, len(photos))
+                    cols = st.columns(3)
                     
                     for j in range(start_index, end_index):
                         photo_reference = photos[j].get('photo_reference', '')
                         photo_url = f'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key_place}'
-                        st.image(photo_url, caption="Şehir Fotoğrafı", width = 300, use_column_width=False)
+                        with cols[j % 3]:
+                            st.image(photo_url, caption="Şehir Fotoğrafı", use_column_width=True)
             
             
                 
@@ -153,20 +154,21 @@ def showTheDatils(api_key_place, place_id):
 # Display title
 st.set_page_config(page_title="Yol Bul", layout="centered")
 
+#* Input section ----------------------------
 # Display inputs
-cols = st.columns([2,1])
+cols = st.columns(spec = [2,0.5],gap= "small")
 with cols[0]:
     # Display inputs for origin, destination and waypoints
     origin = st.text_input("Başlangıç Noktası").title()
     destination = st.text_input("Varış Noktası").title()
     waypoints = st.text_input("Ara Noktalar", help="Ara noktaları virgül(,) veya tire(-) ile ayırın").title()
-
 with cols[1]:
     # Display input for navigation mode
     navigation_mode = st.radio("Navigasyon Modu Seçin:", ("Araba", "Toplu Taşıma", "Yaya"))
-    
+#* Input section end ------------------------
+
 # Display button
-button_yol_tarifi = st.button("Yol Tarifi Al")
+button_yol_tarifi = st.button(label = "Yol Tarifi Al", key = "buttonDirections", type = "primary", disabled = False, use_container_width = False)
 
 # Created container for map and info to show them side by side
 container_mapandinfo = st.container()
@@ -235,14 +237,16 @@ if button_yol_tarifi:
         distanceInfo = ("Toplam mesafe: " + distance)
         durationInfo = ("Tahmini varış süresi: " + duration)
         # Haritayı göster
-        display_coordinates_on_map(api_key, origin, destination, waypoints)
+        with st.spinner("Harita yükleniyor..."):
+            time.sleep(1)
+            display_coordinates_on_map(api_key, origin, destination, waypoints)
 
 # Divider 
 st.divider()
 # Get the place name from the user and create and button right next to it
 col1, col2 = st.columns([2,1])
 with col1:
-    placeDetails = st.text_input("Yer Adı").title()
+    placeDetails = st.text_input("Yer Adı", label_visibility = "collapsed").title()
 button_yer_bul = col2.button("Detayları Göster")
 
 # If button is clicked then process finding details of the place
