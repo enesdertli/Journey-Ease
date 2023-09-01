@@ -56,6 +56,10 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
         # Create map
         m = folium.Map(location=[(origin_coordinates[0] + destination_coordinates[0]) / 2, (origin_coordinates[1] + destination_coordinates[1]) / 2], zoom_start=6)
 
+        # Add color to map
+        #folium.TileLayer('Stamen Watercolor').add_to(m)
+        #folium.TileLayer('OpenStreetMap').add_to(m)
+
         # Güzergahı haritaya ekleyin
         folium.PolyLine(
         locations=decoded_path,
@@ -87,13 +91,13 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                         icon= folium.Icon(color="blue", icon="play", icon_color="white"),
                         popup=waypoint
                     ).add_to(m)
+        
+        # Add delay
+        with st.spinner("Harita yükleniyor..."):
+            # Remove success text
+            time.sleep(1.5)
+            succes_text.empty()
 
-        # Add color to map
-        folium.TileLayer('Stamen Watercolor').add_to(m)
-        #folium.TileLayer('OpenStreetMap').add_to(m)
-
-        # Remove success text
-        succes_text.empty()
         # Add the processed map to the placeholder
         with placeholder_map.container():
             # Display map
@@ -168,7 +172,7 @@ with cols[1]:
 #* Input section end ------------------------
 
 # Display button
-button_yol_tarifi = st.button(label = "Yol Tarifi Al", key = "buttonDirections", type = "primary", disabled = False, use_container_width = False)
+buttonDirections = st.button(label = "Yol Tarifi Al", key = "buttonDirections", type = "primary", disabled = False, use_container_width = False)
 
 # Created container for map and info to show them side by side
 container_mapandinfo = st.container()
@@ -180,11 +184,11 @@ with container_mapandinfo:
     # Display clean map
     with placeholder_map.container():
         m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
-        folium.TileLayer('Stamen Watercolor').add_to(m)
+        #folium.TileLayer('Stamen Watercolor').add_to(m)
         st.components.v1.html(m._repr_html_(), width=750, height=450)
     
 # If button is clicked then process
-if button_yol_tarifi:
+if buttonDirections:
 
     # Clear the placeholder
     placeholder_map.empty()
@@ -237,9 +241,7 @@ if button_yol_tarifi:
         distanceInfo = ("Toplam mesafe: " + distance)
         durationInfo = ("Tahmini varış süresi: " + duration)
         # Haritayı göster
-        with st.spinner("Harita yükleniyor..."):
-            time.sleep(1)
-            display_coordinates_on_map(api_key, origin, destination, waypoints)
+        display_coordinates_on_map(api_key, origin, destination, waypoints)
 
 # Divider 
 st.divider()
