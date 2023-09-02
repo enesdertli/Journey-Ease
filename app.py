@@ -1,23 +1,20 @@
-import googlemaps
 import requests
 import streamlit as st
 import folium
 import polyline
-import pandas as pd
 import time
 
-# Read API key
+#* Read API key
 api_key = open("key.txt", "r").read()
 api_key_place = open("placeapi.txt", "r").read()
 
-# API base url
+#* API base url
 url = "https://maps.googleapis.com/maps/api/directions/json"
 
 
-# Get coordinates of a location
+#* Get coordinates of a location
 def get_coordinates(api_key, location_name):
     base_url = "https://maps.googleapis.com/maps/api/geocode/json"
-
     params = {
         "address": location_name,
         "key": api_key
@@ -48,39 +45,39 @@ def get_place_id(api_key_place, place):
     #return place_id
 
 def display_coordinates_on_map(api_key, origin, destination, waypoints):
-    # Get coordinates
+    #* Get coordinates
     origin_coordinates = get_coordinates(api_key, origin)
     destination_coordinates = get_coordinates(api_key, destination)
 
     if origin_coordinates and destination_coordinates:
-        # Create map
+        #* Create map
         m = folium.Map(location=[(origin_coordinates[0] + destination_coordinates[0]) / 2, (origin_coordinates[1] + destination_coordinates[1]) / 2], zoom_start=6)
 
-        # Add color to map
+        #* Add color to map > Decided to not use it
         #folium.TileLayer('Stamen Watercolor').add_to(m)
         #folium.TileLayer('OpenStreetMap').add_to(m)
 
-        # Güzergahı haritaya ekleyin
+        #* Add path to map
         folium.PolyLine(
         locations=decoded_path,
         color='green'
         ).add_to(m)
 
-        # Add marker on starting point
+        #* Add marker on starting point
         folium.Marker(
             location=origin_coordinates,
             icon= folium.Icon(color="green", icon="home",icon_color="white"),
             popup=origin
         ).add_to(m)
 
-        # Add marker on destination point
+        #* Add marker on destination point
         folium.Marker(
             location=destination_coordinates,
             icon= folium.Icon(color="red", icon="stop", icon_color="white"),
             popup=destination
         ).add_to(m)
 
-        # Add markers on waypoints
+        #* Add markers on waypoints
         if waypoints:
             waypoints_list = waypoints.split("|")
             for waypoint in waypoints_list:
@@ -92,15 +89,16 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                         popup=waypoint
                     ).add_to(m)
         
-        # Add delay
-        with st.spinner("Harita yükleniyor..."):
-            # Remove success text
-            time.sleep(1.5)
-            succes_text.empty()
+        #* Add delay
+        with container_mapandinfo:
+            with st.spinner("Harita yükleniyor..."):
+                # Remove success text
+                time.sleep(1.5)
+                succes_text.empty()
 
-        # Add the processed map to the placeholder
+        #* Add the processed map to the placeholder
         with placeholder_map.container():
-            # Display map
+            #* Display map
             st.components.v1.html(m._repr_html_(), width=750, height=450)
         with container_mapandinfo:
             with containerInfo:
@@ -108,10 +106,12 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
                 st.caption(durationInfo)
 
 def showTheDatils(api_key_place, place_id):
+
     url_place_details = f'https://maps.googleapis.com/maps/api/place/details/json?placeid={place_id}&key={api_key_place}'
     response_place_details = requests.get(url_place_details)
     data_place_details = response_place_details.json()  
-    # Check status
+
+    #* Check status
     if 'result' in data_place_details:
         place_details = data_place_details['result']
         name = place_details.get('name', 'Bilgi yok')
@@ -123,7 +123,7 @@ def showTheDatils(api_key_place, place_id):
         tab_titles = [f'Sayfa {i+1}' for i in range(tab_count)]
         
         
-        # Show the details
+        #* Show the details
         with tab1Name:
             st.subheader(name)
         with tab2Address:
@@ -132,7 +132,7 @@ def showTheDatils(api_key_place, place_id):
             st.subheader(phone)
         with tab4Website:
             st.subheader(website)
-        # Show the photos
+        #* Show the photos
         with tab5Photos:
             tabsOfPhotos = st.tabs(tab_titles)
             for i in range(tab_count):
@@ -145,17 +145,11 @@ def showTheDatils(api_key_place, place_id):
                         photo_reference = photos[j].get('photo_reference', '')
                         photo_url = f'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key_place}'
                         with cols[j % 3]:
-                            st.image(photo_url, caption="Şehir Fotoğrafı", use_column_width=True)
-            
-            
-                
-
-
-        
+                            st.image(photo_url, caption="Şehir Fotoğrafı", use_column_width=True)   
     else:
         st.error('Yer detayları bulunamadı veya hata oluştu.')
 
-# Display title
+#* Display title
 st.set_page_config(page_title="Yol Bul", layout="centered")
 
 #* Input section ----------------------------
@@ -171,32 +165,34 @@ with cols[1]:
     navigation_mode = st.radio("Navigasyon Modu Seçin:", ("Araba", "Toplu Taşıma", "Yaya"))
 #* Input section end ------------------------
 
-# Display button
+#* Display button
 buttonDirections = st.button(label = "Yol Tarifi Al", key = "buttonDirections", type = "primary", disabled = False, use_container_width = False)
 
-# Created container for map and info to show them side by side
+#* Created container for map and info to show them side by side
 container_mapandinfo = st.container()
 
-# Create placeholder for map for changing it after button is clicked and process is done
+#* Create placeholder for map for changing it after button is clicked and process is done
 placeholder_map = st.empty()
 
-with container_mapandinfo:
-    # Display clean map
-    with placeholder_map.container():
-        m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
-        #folium.TileLayer('Stamen Watercolor').add_to(m)
-        st.components.v1.html(m._repr_html_(), width=750, height=450)
+#! Decided to not show the map before button is clicked -----------------
+# with container_mapandinfo:
+#     # Display clean map
+#     with placeholder_map.container():
+#         m = folium.Map(location=[38.9637, 35.2433], zoom_start=6)
+#         #folium.TileLayer('Stamen Watercolor').add_to(m)
+#         st.components.v1.html(m._repr_html_(), width=750, height=450)
+#! ----------------------------------------------------------------------
     
-# If button is clicked then process
+#* If button is clicked then process
 if buttonDirections:
 
-    # Clear the placeholder
-    placeholder_map.empty()
-    # Replace , and - with | for waypoints
+    #* Clear the placeholder > Dont need it anymore
+    #placeholder_map.empty()
+    #* Replace , and - with | for waypoints
     waypoints = waypoints.replace(",", "|").replace("-", "|")
-    # Optimize waypoints
+    #* Optimize waypoints
     waypoints = f"optimize:true|{waypoints}"
-    # Get travel mode
+    #* Get travel mode
     if navigation_mode == "Araba":
         navigation_mode = "driving"
     elif navigation_mode == "Toplu Taşıma":
@@ -204,7 +200,7 @@ if buttonDirections:
     else:
         navigation_mode = "walking"
 
-    # Make request
+    #* Make request
     params = {
         "origin": origin,
         "destination": destination,
@@ -213,49 +209,49 @@ if buttonDirections:
         "mode": navigation_mode,
     }
 
-    # Get response
+    #* Get response
     response = requests.get(url, params=params)
-    # Get data
+    #* Get data
     data = response.json()
 
-    # Check status
+    #* Check status
     if data["status"] != "OK":
-        # Display error message
+        #* Display error message
         error_text = ("Hata: " + data["status"] + ", Yol tarifi alınamadı!")
         st.error(error_text, icon="🚨")
     else:   
-        # Display success message
+        #* Display success message
         with container_mapandinfo:
             succes_text = st.success("Yol tarifi alınıyor!",icon="🚗")
             
-        # Display on the map
+        #* Display on the map
         path_data = data["routes"][0]["overview_polyline"]["points"]
         decoded_path = polyline.decode(path_data)
         containerInfo = st.container()
 
-        # Get distance and duration
+        #* Get distance and duration
         distance = data["routes"][0]["legs"][0]["distance"]["text"]
         duration = data["routes"][0]["legs"][0]["duration"]["text"].replace("hours", "saat").replace("mins", "dakika").replace("days","gün")
 
-        # Because of we cant caption more than one variable, we need to combine them
+        #* Because of we cant caption more than one variable, we need to combine them
         distanceInfo = ("Toplam mesafe: " + distance)
         durationInfo = ("Tahmini varış süresi: " + duration)
-        # Haritayı göster
+        #* Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
 
-# Divider 
+#* Divider 
 st.divider()
-# Get the place name from the user and create and button right next to it
+#* Get the place name from the user and create and button right next to it
 col1, col2 = st.columns([2,1])
 with col1:
     placeDetails = st.text_input("Yer Adı", label_visibility = "collapsed").title()
 button_yer_bul = col2.button("Detayları Göster")
 
-# If button is clicked then process finding details of the place
-# First find the ID of the place
+#* If button is clicked then process finding details of the place
+#* First find the ID of the place
 if button_yer_bul:
     IDofPlace = get_place_id(api_key_place, placeDetails)
-    # If ID is found then get details of the place
+    #* If ID is found then get details of the place
     if IDofPlace:
         tab1Name, tab2Address, tab3Phone, tab4Website, tab5Photos = st.tabs(["Yer Adı", "Adres", "Telefon", "Web Sitesi", "Fotoğraflar"])
         showTheDatils(api_key_place, IDofPlace)
