@@ -238,6 +238,14 @@ if buttonDirections:
         durationInfo = ("Tahmini varış süresi: " + duration)
         #* Haritayı göster
         display_coordinates_on_map(api_key, origin, destination, waypoints)
+        #* Streamlit experimental set query params
+        st.experimental_set_query_params(
+            start_point = origin,
+            end_point = destination,
+            waypoints = waypoints,
+            travel_mode = navigation_mode,
+                            )
+
 
 #* Divider 
 st.divider()
