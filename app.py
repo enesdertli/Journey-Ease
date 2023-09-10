@@ -4,15 +4,24 @@ import folium
 import polyline
 import time
 
-#* Read API key
-api_key = open("key.txt", "r").read()
-api_key_place = open("placeapi.txt", "r").read()
+#* Display title
+st.set_page_config(page_title="Yol Bul", layout="centered")
+
+#* Read API keys
+@st.cache_data
+def read_api_key():
+    api_key = open("key.txt", "r").read()
+    api_key_place = open("placeapi.txt", "r").read()
+    return api_key, api_key_place
+api_key, api_key_place = read_api_key()
+
 
 #* API base url
 url = "https://maps.googleapis.com/maps/api/directions/json"
 
 
 #* Get coordinates of a location
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_coordinates(api_key, location_name):
     base_url = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {
@@ -32,8 +41,9 @@ def get_coordinates(api_key, location_name):
         print("Error:", data["status"])
     return None
 
+#* Get place ID
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_place_id(api_key_place, place):
-
     url_place = f'https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={place}&inputtype=textquery&fields=place_id&key={api_key_place}'
     response_place = requests.get(url_place)
     data_place = response_place.json()
@@ -43,6 +53,7 @@ def get_place_id(api_key_place, place):
     else:
         st.error('Yer bulunamadı veya hata oluştu.')
     #return place_id
+
 
 def display_coordinates_on_map(api_key, origin, destination, waypoints):
     #* Get coordinates
@@ -102,11 +113,11 @@ def display_coordinates_on_map(api_key, origin, destination, waypoints):
             st.components.v1.html(m._repr_html_(), width=750, height=450)
         with container_mapandinfo:
             with containerInfo:
-                st.caption(distanceInfo)
-                st.caption(durationInfo)
+                st.caption(distanceInfo + ", " + durationInfo)
+                
 
+#* Show the details of the place
 def showTheDatils(api_key_place, place_id):
-
     url_place_details = f'https://maps.googleapis.com/maps/api/place/details/json?placeid={place_id}&key={api_key_place}'
     response_place_details = requests.get(url_place_details)
     data_place_details = response_place_details.json()  
@@ -149,10 +160,7 @@ def showTheDatils(api_key_place, place_id):
     else:
         st.error('Yer detayları bulunamadı veya hata oluştu.')
 
-#* Display title
-st.set_page_config(page_title="Yol Bul", layout="centered")
-
-#* Input section ----------------------------
+#? Input section ----------------------------
 # Display inputs
 cols = st.columns(spec = [2,0.5],gap= "small")
 with cols[0]:
@@ -161,9 +169,11 @@ with cols[0]:
     destination = st.text_input("Varış Noktası").title()
     waypoints = st.text_input("Ara Noktalar", help="Ara noktaları virgül(,) veya tire(-) ile ayırın").title()
 with cols[1]:
-    # Display input for navigation mode
-    navigation_mode = st.radio("Navigasyon Modu Seçin:", ("Araba", "Toplu Taşıma", "Yaya"))
-#* Input section end ------------------------
+    #* Display input for navigation mode
+    if 'navigation_mode' not in st.session_state:
+        st.session_state['navigation_mode'] = "Araba"
+    navigation_mode = st.radio("Navigasyon Modu Seçin:", ("Araba", "Toplu Taşıma", "Yaya"),key=st.session_state["navigation_mode"]) 
+#? Input section end ------------------------
 
 #* Display button
 buttonDirections = st.button(label = "Yol Tarifi Al", key = "buttonDirections", type = "primary", disabled = False, use_container_width = False)
@@ -252,8 +262,8 @@ st.divider()
 #* Get the place name from the user and create and button right next to it
 col1, col2 = st.columns([2,1])
 with col1:
-    placeDetails = st.text_input("Yer Adı", label_visibility = "collapsed").title()
-button_yer_bul = col2.button("Detayları Göster")
+    placeDetails = st.text_input("Yer Adı", label_visibility = "collapsed", placeholder="Detaylarını merak ettiğiniz yerin adını girin").title()
+button_yer_bul = col2.button("Detayları Göster",type = "primary", disabled = False, use_container_width = True)
 
 #* If button is clicked then process finding details of the place
 #* First find the ID of the place
