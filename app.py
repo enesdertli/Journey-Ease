@@ -132,19 +132,27 @@ def showTheDatils(api_key_place, place_id):
         photos = place_details.get('photos', [])
         tab_count = (len(photos) +2) // 3
         tab_titles = [f'Sayfa {i+1}' for i in range(tab_count)]
+        try:
+            gezilecek_yerler = createDict(placeDetails)
+            gezilecek_yerler_list = gezilecek_yerler[placeDetails]
+        except:
+            gezilecek_yerler_list = ["Lütfen yalnızca şehir ismi giriniz. Bilgi bulunamadı."]
         
         
         #* Show the details
         with tab1Name:
-            st.subheader(name)
-        with tab2Address:
-            st.subheader(address)
-        with tab3Phone:
-            st.subheader(phone)
-        with tab4Website:
-            st.subheader(website)
+            st.write(name)
+        with tab2PlacesToVisit:
+            for yer in gezilecek_yerler_list:
+                st.write(f"- {yer}")
+        with tab3Address:
+            st.write(address)
+        with tab4Phone:
+            st.write(phone)
+        with tab5Website:
+            st.write(website)
         #* Show the photos
-        with tab5Photos:
+        with tab6Photos:
             tabsOfPhotos = st.tabs(tab_titles)
             for i in range(tab_count):
                 with tabsOfPhotos[i]:
@@ -256,6 +264,82 @@ if buttonDirections:
             travel_mode = navigation_mode,
                             )
 
+st.cache_data(ttl=20, show_spinner=False)
+def createDict(key):
+    gezilecek_yerler = {
+    "Adana": ["Adana Merkez Parkı", "Seyhan Baraj Gölü", "Sabancı Merkez Camii"],
+    "Adıyaman": ["Nemrut Dağı", "Adıyaman Müzesi", "Perre Antik Kenti"],
+    "Afyonkarahisar": ["Afyon Kalesi", "Termal Kaplıcalar", "Afyonkarahisar Zafer Anıtı"],
+    "Ağrı": ["Ağrı Dağı", "İshak Paşa Sarayı", "Noah's Ark National Park"],
+    "Aksaray": ["Ihlara Vadisi", "Sultan Marshes", "Aksaray Ulu Camii"],
+    "Amasya": ["Amasya Kalesi", "Yeşilırmak Nehri", "Amasya Safranbolu Evleri"],
+    "Ankara": ["Anıtkabir", "Atatürk Orman Çiftliği", "Ankara Kalesi"],
+    "Antalya": ["Antalya Kaleiçi", "Düden Şelalesi", "Antalya Müzesi"],
+    "Ardahan": ["Çıldır Gölü", "Ardahan Kalesi", "Tarihi Kale Camii"],
+    "Artvin": ["Şavşat Karagöl", "Artvin Şehir Merkezi", "Hopa Sahili"]
+    }
+    gezilecek_yerler["Aydın"] = ["Didim Antik Kenti", "Kuşadası Plajları", "Akbük Koyu"]
+    gezilecek_yerler["Balıkesir"] = ["Ayvalık Cunda Adası", "Troya Antik Kenti", "Kazdağı Milli Parkı"]
+    gezilecek_yerler["Bilecik"] = ["Söğüt Köyü", "Bilecik Şeyh Edebali Türbesi", "Bozüyük Atatürk Evi"]
+    gezilecek_yerler["Bingöl"] = ["Yeraltı Şehri", "Karlıova Kayak Merkezi", "Kral Kızı Kalesi"]
+    gezilecek_yerler["Bitlis"] = ["Nemrut Krater Gölü", "Bitlis Kalesi", "Ahlat Selçuklu Mezarlıkları"]
+    gezilecek_yerler["Bolu"] = ["Yedigöller Milli Parkı", "Abant Gölü", "Gölcük Tabiat Parkı"]
+    gezilecek_yerler["Burdur"] = ["Burdur Müzesi", "Salda Gölü", "Burdur Göleti"]
+    gezilecek_yerler["Bursa"] = ["Uludağ Kayak Merkezi", "Bursa Ulu Camii", "Bursa Kalesi"]
+    gezilecek_yerler["Çanakkale"] = ["Çanakkale Şehitler Abidesi", "Troya Antik Kenti", "Bozcaada"]
+    gezilecek_yerler["Çankırı"] = ["Çankırı Kalesi", "Atatürk Evi", "Çankırı Müzesi"]
+    gezilecek_yerler["Çorum"] = ["Hattuşaş Antik Kenti", "Alacahöyük Höyüğü", "Çorum Müzesi"]
+    gezilecek_yerler["Denizli"] = ["Pamukkale Travertenleri", "Hierapolis Antik Kenti", "Laodikeia Antik Kenti"]
+    gezilecek_yerler["Diyarbakır"] = ["Diyarbakır Surları", "Hevsel Bahçeleri", "Mardinkapı"]
+    gezilecek_yerler["Edirne"] = ["Selimiye Camii", "Edirne Kalesi", "Tarihi Edirne Evleri"]
+    gezilecek_yerler["Elazığ"] = ["Harput Kalesi", "Buzluk Mağarası", "XV. Yüzyıl Kümbeti"]
+    gezilecek_yerler["Erzincan"] = ["Kemaliye (Eğin)", "Erzincan Müzesi", "Terzibaba Türbesi"]
+    gezilecek_yerler["Erzurum"] = ["Palandöken Kayak Merkezi", "Tortum Gölü", "Atatürk Üniversitesi Botanik Bahçesi"]
+    gezilecek_yerler["Eskişehir"] = ["Porsuk Çayı", "Odunpazarı Evleri", "Eskişehir Bilim, Sanat ve Kültür Parkı"]
+    gezilecek_yerler["Gaziantep"] = ["Zeugma Mozaik Müzesi", "Gaziantep Kalesi", "Bakırcılar Çarşısı"]
+    gezilecek_yerler["Giresun"] = ["Giresun Adası", "Giresun Kalesi", "Giresun Müzesi"]
+    gezilecek_yerler["Gümüşhane"] = ["Gümüşhane Kalesi", "Karaca Mağarası", "Haho Kilisesi"]
+    gezilecek_yerler["Hakkari"] = ["Cennet Vadisi", "Şemdinli Kayak Merkezi", "Sümbül Vadisi"]
+    gezilecek_yerler["Hatay"] = ["Antakya Mozaik Müzesi", "St. Pierre Kilisesi", "Harbiye Şelalesi"]
+    gezilecek_yerler["Isparta"] = ["Eğirdir Gölü", "Sagalassos Antik Kenti", "Isparta Müzesi"]
+    gezilecek_yerler["Mersin"] = ["Silifke Kalesi", "Kızkalesi", "Tarsus Ulu Camii"]
+    gezilecek_yerler["İstanbul"] = ["Ayasofya", "Topkapı Sarayı", "Kapalıçarşı"]
+    gezilecek_yerler["İzmir"] = ["Efes Antik Kenti", "Kemeraltı Çarşısı", "Asansör"]
+    gezilecek_yerler["Kahramanmaraş"] = ["Kahramanmaraş Kalesi", "Cendere Köprüsü", "Bakırcılar Çarşısı"]
+    gezilecek_yerler["Karabük"] = ["Safranbolu Evleri", "Safranbolu Çarşısı", "Kent Ormanı"]
+    gezilecek_yerler["Karaman"] = ["Ermenek Baraj Gölü", "Alahan Manastırı", "Binbir Kilise"]
+    gezilecek_yerler["Kars"] = ["Ani Harabeleri", "Kars Kalesi", "Sarıkamış Şehitliği"]
+    gezilecek_yerler["Kastamonu"] = ["İnebolu Eski Evleri", "Kastamonu Kalesi", "Valla Canyon"]
+    gezilecek_yerler["Kayseri"] = ["Erciyes Kayak Merkezi", "Gevasa Hanı", "Kayseri Kalesi"]
+    gezilecek_yerler["Kırıkkale"] = ["Karakeçili Göleti", "Çamlıca Göleti", "Kalecik Göleti"]
+    gezilecek_yerler["Kırklareli"] = ["Dupnisa Mağarası", "Kıyıköy Sahili", "Beylik Dere Tabiat Parkı"]
+    gezilecek_yerler["Kırşehir"] = ["Tarihi Kırşehir Evleri", "Cacabey Medresesi", "Kırşehir Kalesi"]
+    gezilecek_yerler["Kilis"] = ["Zeugma Mozaik Müzesi", "Kilis Kalesi", "Kilis Orman Çadır Kampı"]
+    gezilecek_yerler["Kocaeli"] = ["Seka Parkı", "İzmit Saat Kulesi", "Kartepe Kayak Merkezi"]
+    gezilecek_yerler["Konya"] = ["Mevlana Müzesi", "Karatay Medresesi", "Türk Hava Kurumu Müzesi"]
+    gezilecek_yerler["Kütahya"] = ["Kütahya Kalesi", "Aizanoi Antik Kenti", "Kossuth Evi"]
+    gezilecek_yerler["Malatya"] = ["Aslantepe Höyüğü", "Malatya Kalesi", "Battalgazi Grand Mosque"]
+    gezilecek_yerler["Manisa"] = ["Sardes Antik Kenti", "Manisa Kalesi", "Niobe Heykeli"]
+    gezilecek_yerler["Mardin"] = ["Mardin Evleri", "Deyrulzafaran Manastırı", "Kasımiye Medresesi"]
+    gezilecek_yerler["Mersin"] = ["Silifke Kalesi", "Cennet ve Cehennem Mağaraları", "Mersin Aqualand Su Parkı"]
+    gezilecek_yerler["Muğla"] = ["Bodrum Antik Tiyatrosu", "Marmaris Kalesi", "Oludeniz Sahili"]
+    gezilecek_yerler["Muş"] = ["Muş Kalesi", "Muş Atatürk Anı Evi", "Havutlu Kervansarayı"]
+    gezilecek_yerler["Nevşehir"] = ["Kapadokya Vadileri", "Göreme Açık Hava Müzesi", "Kaymaklı Yeraltı Şehri"]
+    gezilecek_yerler["Niğde"] = ["Aladağlar Milli Parkı", "Niğde Kalesi", "Borçka Karagöl"]
+    gezilecek_yerler["Ordu"] = ["Boztepe Tepesi", "Perşembe Yaylası", "Ordu Kalesi"]
+    gezilecek_yerler["Osmaniye"] = ["Kastabala Antik Kenti", "Osmaniye Kent Müzesi", "Karatepe-Aslantaş Açık Hava Müzesi"]
+    gezilecek_yerler["Rize"] = ["Ayder Yaylası", "Rize Kalesi", "Fırtına Vadisi"]
+    gezilecek_yerler["Sakarya"] = ["Sapanca Gölü", "Sakarya Müzesi", "Taraklı Tarihi Evleri"]
+    gezilecek_yerler["Samsun"] = ["Atatürk Caddesi", "Amisos Tepesi", "Bandırma Vapuru Müzesi"]
+    gezilecek_yerler["Siirt"] = ["Cizre Gümrük Kapısı", "Siirt Kalesi", "Botan Vadisi"]
+    gezilecek_yerler["Sinop"] = ["Sinop Cezaevi Müzesi", "Sinop Kalesi", "Akliman Plajı"]
+    gezilecek_yerler["Sivas"] = ["Divriği Ulu Camii ve Darüşşifası", "Atatürk Caddesi", "Gökpınar Gölü"]
+    gezilecek_yerler["Şanlıurfa"] = ["Göbeklitepe", "Şanlıurfa Balıklı Göl", "Rızvaniye Camii"]
+    gezilecek_yerler["Şırnak"] = ["Cudi Dağı Milli Parkı", "Şırnak Kalesi", "Beytüşşebap Şelalesi"]
+    gezilecek_yerler["Tekirdağ"] = ["Namık Kemal Evi", "Rakoczi Müzesi", "Tekirdağ Kalesi"]
+    gezilecek_yerler["Tokat"] = ["Tokat Kalesi", "Atatürk Caddesi", "Ballıca Mağarası"]
+
+    return gezilecek_yerler
 
 #* Divider 
 st.divider()
@@ -271,10 +355,15 @@ if button_yer_bul:
     IDofPlace = get_place_id(api_key_place, placeDetails)
     #* If ID is found then get details of the place
     if IDofPlace:
-        tab1Name, tab2Address, tab3Phone, tab4Website, tab5Photos = st.tabs(["Yer Adı", "Adres", "Telefon", "Web Sitesi", "Fotoğraflar"])
+        tab1Name, tab2PlacesToVisit ,tab3Address, tab4Phone, tab5Website, tab6Photos= st.tabs(["Yer Adı", "Ziyaret Edilecek Yerler", "Adres", "Telefon", "Web Sitesi", "Fotoğraflar"])
         showTheDatils(api_key_place, IDofPlace)
         
         
+
+
+
+
+
 
 
 
