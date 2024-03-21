@@ -1,6 +1,6 @@
-# Yolbul: Smart Route Planning Application
+# Journey-Ease: Smart Route Planning Application
 
-Yolbul is a smart route planning application that consolidates three different Google services and additional features into a single platform.
+Journey-Ease is a smart route planning application that consolidates three different Google services and additional features into a single platform.
 
 ## Features
 
